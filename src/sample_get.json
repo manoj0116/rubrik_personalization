@@ -1,0 +1,9 @@
+{
+  "sidemenu": {
+    "click": {
+      "link1": 1,
+      "link2": 2,
+      "link3": 3
+    }
+  }
+}
