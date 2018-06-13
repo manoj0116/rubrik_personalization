@@ -72,8 +72,9 @@ def process_get(request, rubrik_domain, user_name, component_name):
             if key_exists(user, component_name):
                 component = user.child(component_name).get()
                 return [v[0] for v in sorted(component.iteritems(),
-                                             key=lambda (k, v): (v, k),
+                                             key=lambda kv: (kv[1], kv[0]),
                                              reverse=True)]
+    return []
 
 
 @application.route("/personalization/<rubrik_domain>/<user_name>",
@@ -94,3 +95,7 @@ def handle_get(rubrik_domain, user_name, component):
         mimetype='application/json'
     )
     return response
+
+
+if __name__ == "__main__":
+    application.run()
