@@ -19,8 +19,6 @@ root = db.reference()
 
 
 def process_post(request, rubrik_domain, user_name):
-    print "Processing post from domain: {} and user_name: {}" \
-        .format(rubrik_domain, user_name)
     json = request.get_json()
 
     if not key_exists(root, rubrik_domain):
@@ -67,8 +65,6 @@ def key_exists(root, key):
 
 
 def process_get(request, rubrik_domain, user_name, component):
-    print "Processing get from domain: {}, user_name: {} and component {}"\
-        .format(rubrik_domain, user_name, component)
     json_url = os.path.join(SITE_ROOT, 'sample_get.json')
     return json.load(open(json_url))
 
