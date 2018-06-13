@@ -1,18 +1,28 @@
 #!/usr/bin/python
 
 from flask import Flask, request
+import firebase_admin
+from firebase_admin import credentials, db
+
 import json
 import os
 
-app = Flask(__name__)
-
 SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
+CERT_PATH = os.path.join(SITE_ROOT, 'rubrik-personalization-firebase-adminsdk-kua3q-a6416b2363.json')
+
+app = Flask(__name__)
+cred = credentials.Certificate(CERT_PATH)
+firebase_admin.initialize_app(cred, {
+    'databaseURL' : 'https://rubrik-personalization.firebaseio.com/'
+})
+root = db.reference()
 
 
 def process_post(request, rubrik_domain, user_name):
     print "Processing post from domain: {} and user_name: {}" \
         .format(rubrik_domain, user_name)
     json = request.get_json()
+
     window = json["window"]
     track = json["track"]
     print "Window: {}".format(window)
