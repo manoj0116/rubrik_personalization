@@ -1,17 +1,9 @@
 {
-  "window": 100,
-  "track": ["click"],
   "components": {
     "sidemenu": {
-      "link1": {
-        "click_count": 2
-      },
-      "link2": {
-        "click_count": 3
-      },
-      "link3": {
-        "click_count": 5
-      }
+      "link1": 2,
+      "link2": 3,
+      "link3": 5
     }
   }
 }

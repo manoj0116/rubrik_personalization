@@ -23,14 +23,47 @@ def process_post(request, rubrik_domain, user_name):
         .format(rubrik_domain, user_name)
     json = request.get_json()
 
-    window = json["window"]
-    track = json["track"]
-    print "Window: {}".format(window)
-    print "Track: {}".format(track)
-    components = json["components"]
-    for component in components:
-        print "Component: {}".format(component)
-        print components[component]
+    if not key_exists(root, rubrik_domain):
+        root.update({
+            rubrik_domain: {
+                user_name: json["components"]
+            }
+        })
+        return
+
+    domain = root.child(rubrik_domain)
+
+    if not key_exists(domain, user_name):
+        domain.update({
+            user_name: json["components"]
+        })
+        return
+
+    user = domain.child(user_name)
+
+    for component_name, component_value in json["components"].items():
+        if not key_exists(user, component_name):
+            user.update({
+                component_name: component_value
+            })
+        else:
+            component = user.child(component_name)
+            for item_name, item_value in component_value.items():
+                if not key_exists(component, item_name):
+                    component.update({
+                        item_name: item_value
+                    })
+                else:
+                    item = component.child(item_name)
+                    item.set(item.get() + item_value)
+
+def key_exists(root, key):
+    data = root.get(shallow=True)
+    try:
+        data[key]
+        return True
+    except KeyError as e:
+        return False
 
 
 def process_get(request, rubrik_domain, user_name, component):
