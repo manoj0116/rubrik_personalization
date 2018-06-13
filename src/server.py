@@ -64,9 +64,16 @@ def key_exists(root, key):
         return False
 
 
-def process_get(request, rubrik_domain, user_name, component):
-    json_url = os.path.join(SITE_ROOT, 'sample_get.json')
-    return json.load(open(json_url))
+def process_get(request, rubrik_domain, user_name, component_name):
+    if key_exists(root, rubrik_domain):
+        domain = root.child(rubrik_domain)
+        if key_exists(domain, user_name):
+            user = domain.child(user_name)
+            if key_exists(user, component_name):
+                component = user.child(component_name).get()
+                return [v[0] for v in sorted(component.iteritems(),
+                                             key=lambda (k, v): (v, k),
+                                             reverse=True)]
 
 
 @application.route("/personalization/<rubrik_domain>/<user_name>",
@@ -81,13 +88,9 @@ def handle_post(rubrik_domain, user_name):
 def handle_get(rubrik_domain, user_name, component):
     data = process_get(request, rubrik_domain, user_name, component)
 
-    response = app.response_class(
+    response = application.response_class(
         response=json.dumps(data),
         status=200,
         mimetype='application/json'
     )
     return response
-
-
-# if __name__ == '__main__':
-#     application.run()
