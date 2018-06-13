@@ -71,7 +71,7 @@ def process_get(request, rubrik_domain, user_name, component_name):
             user = domain.child(user_name)
             if key_exists(user, component_name):
                 component = user.child(component_name).get()
-                return [v[0] for v in sorted(component.iteritems(),
+                return [v[0] for v in sorted(component.items(),
                                              key=lambda kv: (kv[1], kv[0]),
                                              reverse=True)]
     return []
