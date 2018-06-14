@@ -6,7 +6,9 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 import json
+import math
 import os
+import time
 
 SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
 CERT_PATH = os.path.join(SITE_ROOT, 'rubrik-personalization-firebase-adminsdk-kua3q-a6416b2363.json')
@@ -32,33 +34,58 @@ def process_post(request, rubrik_domain, user_name):
                 user_name: json["components"]
             }
         })
-        return
+    else:
+        domain = root.child(rubrik_domain)
 
-    domain = root.child(rubrik_domain)
-
-    if not key_exists(domain, user_name):
-        domain.update({
-            user_name: json["components"]
-        })
-        return
-
-    user = domain.child(user_name)
-
-    for component_name, component_value in json["components"].items():
-        if not key_exists(user, component_name):
-            user.update({
-                component_name: component_value
+        if not key_exists(domain, user_name):
+            domain.update({
+                user_name: json["components"]
             })
         else:
-            component = user.child(component_name)
-            for item_name, item_value in component_value.items():
-                if not key_exists(component, item_name):
-                    component.update({
-                        item_name: item_value
+            user = domain.child(user_name)
+
+            for component_name, component_value in json["components"].items():
+                if not key_exists(user, component_name):
+                    user.update({
+                        component_name: component_value
                     })
+
+    domain = root.child(rubrik_domain)
+    user = domain.child(user_name)
+    current_ts = time.time()
+    for component_name, component_value in json["components"].items():
+        component = user.child(component_name)
+        links = component.child("links")
+        for item_name, item_value in component_value["links"].items():
+            item = links.child(item_name)
+            item.update({
+                "ts": current_ts
+            })
+
+        if key_exists(component, "comp_ts"):
+            old_ts = float(component.child("comp_ts").get())
+            links = component.child("links")
+            for item_name, item_value in links.get().items():
+                item = links.child(item_name)
+
+                new_count = 0
+                try:
+                    new_count = component_value["links"][item_name]["count"]
+                except KeyError as e:
+                    pass
+
+                if key_exists(item, "count"):
+                    old_count = float(item.child("count").get())
                 else:
-                    item = component.child(item_name)
-                    item.set(item.get() + item_value)
+                    old_count = 0
+
+                item.child("count").set((old_count * max(0, (float(1) - float(
+                    current_ts - old_ts) / float(86400)))) + new_count)
+
+        component.update({
+            "comp_ts": current_ts
+        })
+
 
 def key_exists(root, key):
     data = root.get(shallow=True)
@@ -77,8 +104,12 @@ def process_get(request, rubrik_domain, user_name, component_name):
         if key_exists(domain, user_name):
             user = domain.child(user_name)
             if key_exists(user, component_name):
-                component = user.child(component_name).get()
-                return [v[0] for v in sorted(component.items(),
+                component = user.child(component_name)
+                links = component.child("links")
+                dict = {}
+                for link_name, link_value in links.get().items():
+                    dict[link_name] = link_value["count"]
+                return [v[0] for v in sorted(dict.items(),
                                              key=lambda kv: (kv[1], kv[0]),
                                              reverse=True)]
     return []
