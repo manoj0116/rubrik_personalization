@@ -21,6 +21,9 @@ root = db.reference()
 
 
 def process_post(request, rubrik_domain, user_name):
+    rubrik_domain = firebase_format(rubrik_domain)
+    user_name = firebase_format(user_name)
+
     json = request.get_json()
 
     if not key_exists(root, rubrik_domain):
@@ -67,6 +70,8 @@ def key_exists(root, key):
 
 
 def process_get(request, rubrik_domain, user_name, component_name):
+    rubrik_domain = firebase_format(rubrik_domain)
+    user_name = firebase_format(user_name)
     if key_exists(root, rubrik_domain):
         domain = root.child(rubrik_domain)
         if key_exists(domain, user_name):
@@ -77,6 +82,10 @@ def process_get(request, rubrik_domain, user_name, component_name):
                                              key=lambda kv: (kv[1], kv[0]),
                                              reverse=True)]
     return []
+
+
+def firebase_format(str):
+    return str.replace(".", "_")
 
 
 @application.route("/personalization/<rubrik_domain>/<user_name>",
