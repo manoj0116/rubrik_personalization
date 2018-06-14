@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from flask import Flask, request
+from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, db
 
@@ -11,6 +12,7 @@ SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
 CERT_PATH = os.path.join(SITE_ROOT, 'rubrik-personalization-firebase-adminsdk-kua3q-a6416b2363.json')
 
 application = Flask(__name__)
+CORS(application)
 cred = credentials.Certificate(CERT_PATH)
 firebase_admin.initialize_app(cred, {
     'databaseURL' : 'https://rubrik-personalization.firebaseio.com/'
